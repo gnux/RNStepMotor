@@ -12,10 +12,10 @@ namespace Test
         {
             //byte[] val = { 0x0e, 0x01, 0x00, 0x00, 0x00, 0x00};
 
-            RNBoard rn = new RNBoard();
+            RNCommandLibrary rn = new RNCommandLibrary();
             try
             {
-                rn.Connect("COM1");
+                rn.Connect("COM2");
             }
             catch (Exception e)
             {

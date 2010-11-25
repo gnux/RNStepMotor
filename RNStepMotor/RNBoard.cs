@@ -25,13 +25,14 @@ namespace RNStepMotor
         Right = 1
     }
 
-    public class RNBoard
+    public class RNCommandLibrary : IDisposable
     {
+        AutoResetEvent _dataAvailable = new AutoResetEvent(false);
         bool _crc = false;
 
-        Motor[] _motors = new Motor[2];
+        //        Motor[] _motors = new Motor[2];
 
-        public RNBoard() { }
+        public RNCommandLibrary() { }
         public void SetCurrent() { }
 
         #region CONNECTION
@@ -39,9 +40,12 @@ namespace RNStepMotor
 
         public void Connect(string serPort)
         {
+            
             if (_conn != null)
                 Disconnect();
             _conn = new SerialPort(serPort, 9600, Parity.None, 8, StopBits.One);
+            _conn.DataReceived += new SerialDataReceivedEventHandler(ReceiveHandler);
+            _conn.ReadTimeout = 500;
             _conn.Open();
         }
 
@@ -72,7 +76,7 @@ namespace RNStepMotor
             }
         }
 
-        private void SendCommand(byte[] data)
+        private byte[] SendCommand(byte[] data)
         {
             if (data.Length > 6)
                 throw new ArgumentException("Commandpart max. lenght is 6!");
@@ -97,17 +101,31 @@ namespace RNStepMotor
                 if (_conn.BytesToWrite > 0)
                     throw new TimeoutException("while write!");
             }
+           // if(_dataAvailable.WaitOne(5000));
+            Thread.Sleep(5000);
+            return null;
+        }
+
+        private void ReceiveHandler(object sender, SerialDataReceivedEventArgs args){
+            Console.Write("HALLO");
+            return;
         }
         #endregion
 
         public void ResetStepCounter(MotorSelection motors)
         {
-            SendCommand(new byte[] { 14, (byte)motors });
+            lock (this)
+            {
+                SendCommand(new byte[] { 14, (byte)motors });
+            }
         }
 
         public void SetFullStep(MotorSelection motors)
         {
-            SendCommand(new byte[] { 13, (byte)motors, 0 });
+            lock (this)
+            {
+                SendCommand(new byte[] { 13, (byte)motors, 0 });
+            }
         }
 
         public void SetHalfStep(MotorSelection motors)
@@ -132,5 +150,14 @@ namespace RNStepMotor
 
         public void EnableCRC() { _crc = true; }
         public void DisableCRC() { _crc = false; }
+
+        #region IDisposable Member
+
+        public void Dispose()
+        {
+            Disconnect();
+        }
+
+        #endregion
     }
 }
