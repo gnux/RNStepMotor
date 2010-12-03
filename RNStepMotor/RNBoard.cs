@@ -27,6 +27,7 @@ namespace RNStepMotor
 
     public class RNCommandLibrary : IDisposable
     {
+        byte[] _answer = null;
         AutoResetEvent _dataAvailable = new AutoResetEvent(false);
         bool _crc = false;
 
@@ -40,27 +41,30 @@ namespace RNStepMotor
 
         public void Connect(string serPort)
         {
-            
-            if (_conn != null)
-                Disconnect();
-            _conn = new SerialPort(serPort, 9600, Parity.None, 8, StopBits.One);
-            _conn.DataReceived += new SerialDataReceivedEventHandler(ReceiveHandler);
-            _conn.ReadTimeout = 500;
-            _conn.Open();
+            lock (this)
+            {
+                if (_conn != null)
+                    Disconnect();
+                _conn = new SerialPort(serPort, 9600, Parity.None, 8, StopBits.One);
+                _conn.DataReceived += new SerialDataReceivedEventHandler(ReceiveHandler);
+                _conn.ReadTimeout = 500;
+                _conn.WriteTimeout = 500;
+                _conn.Open();
+            }
         }
 
         public void Disconnect()
         {
-            if (_conn == null)
-                return;
-            lock (_conn)
+            lock (this)
             {
-                while (_conn.IsOpen)
+                if (_conn == null)
+                    return;
+                lock (_conn)
                 {
-                    _conn.Close();
-                    Thread.Sleep(20);
+                    if (_conn.IsOpen)
+                        _conn.Close();
+                    _conn.Dispose();
                 }
-                _conn.Dispose();
                 _conn = null;
             }
         }
@@ -94,6 +98,7 @@ namespace RNStepMotor
 
             lock (_conn)
             {
+
                 _conn.Write(command, 0, 9);
                 Thread.Sleep(20);
                 if (_conn.BytesToWrite > 0)
@@ -101,12 +106,19 @@ namespace RNStepMotor
                 if (_conn.BytesToWrite > 0)
                     throw new TimeoutException("while write!");
             }
-           // if(_dataAvailable.WaitOne(5000));
-            Thread.Sleep(5000);
+            if (!(_dataAvailable.WaitOne(5000) && _answer != null))
+                throw new TimeoutException("Timeout occured while waiting for response\n" + "Message was: " + Utils.ByteArrayToHexString(command));
+
+            lock (_answer)
+            {
+                //CheckReturnValue(_answer);
+            }
+
             return null;
         }
 
-        private void ReceiveHandler(object sender, SerialDataReceivedEventArgs args){
+        private void ReceiveHandler(object sender, SerialDataReceivedEventArgs args)
+        {
             Console.Write("HALLO");
             return;
         }

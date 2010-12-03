@@ -33,5 +33,15 @@ namespace RNStepMotor
                 pad[i] = (data.Length > i) ? ((byte) data[i]) : (byte) 0;
             return pad;
         }
+
+        internal static string ByteArrayToHexString(byte[] array)
+        {
+            StringBuilder str = new StringBuilder("0x");
+            foreach (byte b in array)
+            {
+                str.Append(Convert.ToString(b, 16));
+            }
+            return str.ToString();
+        }
     }
 }
