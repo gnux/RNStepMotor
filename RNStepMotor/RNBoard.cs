@@ -7,6 +7,11 @@ using System.Threading;
 
 namespace RNStepMotor
 {
+    #region DEFINITIONS
+    /// <summary>
+    /// Choose motors assigned for command.
+    /// Up to eight motors are selectable.
+    /// </summary>
     public enum MotorSelection : byte
     {
         Motor1 = 1,
@@ -19,11 +24,49 @@ namespace RNStepMotor
         Motor8 = 128
     }
 
+    /// <summary>
+    /// Choose rotation direction.
+    /// </summary>
     public enum RotatingDirection : byte
     {
         Left = 0,
         Right = 1
     }
+
+    /// <summary>
+    /// Choose how long a setting should least.
+    /// </summary>
+    public enum SettingsDuration : byte
+    {
+        UntilReset = 0,
+        StoreInEeprom = 1
+    }
+
+    private enum RNCommands : byte
+    { 
+        SetMotorCurrent = 10,
+        SetStartCurrent = 11,
+        SetHoldCurrent = 12,
+        SetStepWidth = 13,
+        ResetStepCounter = 14,
+        ActivateOrHoldMotor = 50,
+        TurnOffMotor = 51,
+        SetRotationDirection = 52,
+        SetSpeedAndAcceleration = 53,
+        StartContinuousRotation = 54,
+        Reserved = 100,
+        GetMotorStatus = 101,
+        GetStepCounter = 102,
+        GetLastIC2Confirmation = 103,
+        GetEndSwitchStatus = 104,
+        SetConnectionMode = 200,
+        SetCRCMode = 201,
+        SetIC2SlaveID = 202,
+        ResetBoard = 203,
+        GetEepromContent = 254,
+        GetFirmwareVersionAndState = 255
+    }
+    #endregion
 
     public class RNCommandLibrary : IDisposable
     {
@@ -31,7 +74,6 @@ namespace RNStepMotor
         AutoResetEvent _dataAvailable = new AutoResetEvent(false);
         bool _crc = false;
 
-        //        Motor[] _motors = new Motor[2];
 
         public RNCommandLibrary() { }
         public void SetCurrent() { }
@@ -123,6 +165,33 @@ namespace RNStepMotor
             return;
         }
         #endregion
+
+        #region CommandsSetup
+        public void SetMotorCurrent(MotorSelection motors, uint cur, SettingsDuration duration)
+        {
+            lock (this)
+            {
+                SendCommand(new byte[] { 10, (byte)motors, (byte)(cur & 0x00FF), (byte)((cur & 0xFF00) >> 8), (byte)duration });
+            }
+        }
+
+        public void SetStartCurrent(MotorSelection motors, uint cur, SettingsDuration duration)
+        {
+            lock (this)
+            {
+                SendCommand(new byte[] { 11, (byte)motors, (byte)(cur & 0x00FF), (byte)((cur & 0xFF00) >> 8), (byte)duration });
+            }
+        }
+
+        public void SetHoldingCurrent(MotorSelection motors, uint cur, SettingsDuration duration)
+        {
+            lock (this)
+            {
+                SendCommand(new byte[] { 12, (byte)motors, (byte)(cur & 0x00FF), (byte)((cur & 0xFF00) >> 8), (byte)duration });
+            }
+        }
+        #endregion
+
 
         public void ResetStepCounter(MotorSelection motors)
         {

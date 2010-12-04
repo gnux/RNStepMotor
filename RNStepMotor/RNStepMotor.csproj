@@ -41,7 +41,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions.cs" />
-    <Compile Include="LowLevelConnection.cs" />
     <Compile Include="Motor.cs" />
     <Compile Include="RNBoard.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
