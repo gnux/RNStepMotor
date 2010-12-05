@@ -15,7 +15,7 @@ namespace Test
             RNCommandLibrary rn = new RNCommandLibrary();
             try
             {
-                rn.Connect("COM2");
+                rn.Connect("COM3");
             }
             catch (Exception e)
             {
@@ -23,6 +23,8 @@ namespace Test
             }
             rn.EnableCRC();
             rn.ResetStepCounter(MotorSelection.Motor1 | MotorSelection.Motor2);
+            rn.RotateSteps(MotorSelection.Motor1, 300);
+            rn.RotateSteps(MotorSelection.Motor2, 300);
             rn.Disconnect();
             //byte crc = rn.TestCrc(val);
             //Console.WriteLine(crc + " 0x" + Convert.ToString(crc, 16));

@@ -43,5 +43,17 @@ namespace RNStepMotor
             }
             return str.ToString();
         }
+
+        internal static byte[] StringToByteArray(string str)
+        {
+            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+            return enc.GetBytes(str);
+        }
+
+        internal static string ByteArrayToString(byte[] arr)
+        {
+            System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+            return enc.GetString(arr);
+        }
     }
 }
