@@ -12,6 +12,9 @@ namespace Test
         {
             //byte[] val = { 0x0e, 0x01, 0x00, 0x00, 0x00, 0x00};
 
+            byte test = 9;
+            RNReturnValues val = (RNReturnValues)test;
+
             RNCommandLibrary rn = new RNCommandLibrary();
             try
             {

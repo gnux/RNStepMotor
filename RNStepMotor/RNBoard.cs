@@ -10,21 +10,52 @@ namespace RNStepMotor
     {
         byte[] _answer = null;
         AutoResetEvent _dataAvailable = new AutoResetEvent(false);
-        public RNCommandLibrary() { }
+        public RNCommandLibrary()
+        {
+            _conn.DataReceived += new SerialDataReceivedEventHandler(_conn_DataReceived);
+            _conn.ErrorReceived += new SerialErrorReceivedEventHandler(_conn_ErrorReceived);
+            _conn.ReadTimeout = 500;
+            _conn.WriteTimeout = 500;
+            _conn.StopBits = StopBits.One;
+            _conn.Parity = Parity.None;
+            _conn.DataBits = 8;
+            _conn.BaudRate = 9600;
+        }
+        int _timeoutAnswer = 1000;
+
+        public int TimeoutAnswer
+        {
+            get { return _timeoutAnswer; }
+            set { _timeoutAnswer = value; }
+        }
+
+        public int WriteTimeout
+        {
+            get { return _conn.WriteTimeout; }
+            set { _conn.WriteTimeout = value; }
+        }
+
+        public int ReadTimeout
+        {
+            get { return _conn.ReadTimeout; }
+            set { _conn.ReadTimeout = value; }
+        }
+
+        public string[] AvailablePorts
+        {
+            get { return SerialPort.GetPortNames(); }
+        }
 
         #region CONNECTION
-        SerialPort _conn = null;
+        private SerialPort _conn = new SerialPort();
 
         public void Connect(string serPort)
         {
             lock (this)
             {
-                if (_conn != null)
+                if (_conn.IsOpen)
                     Disconnect();
-                _conn = new SerialPort(serPort, 9600, Parity.None, 8, StopBits.One);
-                _conn.DataReceived += new SerialDataReceivedEventHandler(ReceiveHandler);
-                _conn.ReadTimeout = 500;
-                _conn.WriteTimeout = 500;
+                _conn.PortName = serPort;
                 _conn.Open();
             }
         }
@@ -33,27 +64,19 @@ namespace RNStepMotor
         {
             lock (this)
             {
-                if (_conn == null)
-                    return;
                 lock (_conn)
                 {
-                    if (_conn.IsOpen)
+                    if (!_conn.IsOpen)
+                        return;
+                    else
                         _conn.Close();
-                    _conn.Dispose();
                 }
-                _conn = null;
             }
         }
 
         public string CurrentPort
         {
-            get
-            {
-                if (_conn != null)
-                    return _conn.PortName;
-                else
-                    return "";
-            }
+            get { return _conn.PortName; }
         }
 
         private byte[] SendCommand(byte[] data)
@@ -72,33 +95,33 @@ namespace RNStepMotor
             {
                 _conn.Write(command, 0, 9);
             }
-            //TODO: Replace with chooseable timeout!
-            if (!(_dataAvailable.WaitOne(1000) && _answer != null))
-                throw new TimeoutException("Timeout occured while waiting for response\n" + "Message was: " + Utils.ByteArrayToHexString(command));
+
+            if (!(_dataAvailable.WaitOne(_timeoutAnswer) && _answer != null))
+                throw new RNConnectionTimeOutException("Timeout occured while waiting for response\n" + "Message was: " + Utils.ByteArrayToHexString(command));
 
             _dataAvailable.Reset();
 
             lock (_answer)
             {
                 CheckReturnValue(_answer);
+                Array.Resize(ref _answer, _answer.Length - 1);
+                return _answer;
             }
-            return _answer;
         }
 
         private void CheckReturnValue(byte[] _answer)
         {
-            switch (_answer[_answer.Length - 1])
+            switch ((RNReturnValues)_answer[_answer.Length - 1])
             {
-                    //TODO: introduce exceptions!
-                case 42: return;
-                case 45: throw new NotImplementedException();
-                case 44: throw new NotImplementedException();
-                case 43: throw new NotImplementedException();
-                default: throw new NotImplementedException();
+                case RNReturnValues.OK: return;
+                case RNReturnValues.UnknownCommand: throw new RNUnknownCommandException();
+                case RNReturnValues.WrongCRC: throw new RNCrcException();
+                case RNReturnValues.WrongSlaveID: throw new RNSlaveIDException();
+                default: throw new RNUnknownReturnValueException();
             }
         }
 
-        private void ReceiveHandler(object sender, SerialDataReceivedEventArgs args)
+        private void _conn_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             SerialPort conn = (SerialPort)sender;
             lock (conn)
@@ -111,13 +134,20 @@ namespace RNStepMotor
                     int index = answer.Length;
                     Array.Resize(ref answer, size);
                     conn.Read(answer, index, size - index);
-                    // Give some Time, because the board is slow! Maybe a hack!
+                    // Give some Time, because the board is slow! May this is a hack!
                     Thread.Sleep(20);
                 }
                 _answer = answer;
             }
             _dataAvailable.Set();
             return;
+        }
+
+        private void _conn_ErrorReceived(Object sender, SerialErrorReceivedEventArgs e)
+        {
+            //TODO:
+
+            throw new NotImplementedException();
         }
         #endregion
 
@@ -206,17 +236,19 @@ namespace RNStepMotor
             }
         }
 
-        public short GetStepCounter(MotorSelection motors)
+        public uint[] GetStepCounter(MotorSelection motors)
         {
             lock (this)
             {
                 byte[] answer = SendCommand(new byte[] { (byte)RNCommands.GetStepCounter });
-                //TODO!!!
-
-                // MotorState[] states = new MotorState[answer.Length];
-                // for (int i = 0; i < answer.Length; ++i)
-                //     states[i] = (MotorState)answer[i];
-                return 0;
+                uint[] steps = new uint[answer.Length / 4];
+                for (int i = 0; i < answer.Length / 4; ++i)
+                {
+                    steps[i] = 0;
+                    for (int j = 0; j < 4; ++j)
+                        steps[i] += answer[i * 4 + j] * (uint)Math.Pow(256, j);
+                }
+                return steps;
             }
         }
 
@@ -225,22 +257,30 @@ namespace RNStepMotor
             lock (this)
             {
                 byte[] answer = SendCommand(new byte[] { (byte)RNCommands.GetLastIC2Confirmation });
-                //TODO!!!
-
-                // MotorState[] states = new MotorState[answer.Length];
-                // for (int i = 0; i < answer.Length; ++i)
-                //     states[i] = (MotorState)answer[i];
-                return 0;
+                return answer[0];
             }
         }
 
         public EndSwitchState[] GetEndSwitchStates()
         {
-            throw new NotImplementedException();
-            //return null;
+            lock (this)
+            {
+                byte[] answer = SendCommand(new byte[] { (byte)RNCommands.GetEndSwitchStatus });
+                EndSwitchState[] switches = new EndSwitchState[answer.Length * 8];
+                for (int i = 0; i < answer.Length; ++i)
+                    for (int j = 0; j < 8; ++j)
+                        switches[i * 8 + j] = (((answer[i] >> j) & 0x01) == 0x01) ? EndSwitchState.On : EndSwitchState.Off;
+                return switches;
+            }
         }
 
-        public void SetInterfaceMode(InterfaceMode mode) { throw new NotImplementedException(); }
+        public void SetInterfaceMode(InterfaceMode mode)
+        {
+            lock (this)
+            {
+                SendCommand(new byte[] { (byte)RNCommands.SetConnectionMode, (byte)mode });
+            }
+        }
 
         public void SetCRCMode(CRCMode mode)
         {
@@ -252,8 +292,6 @@ namespace RNStepMotor
 
         public void SetIC2SlaveID(byte id)
         {
-            if (id % 2 != 0)
-                throw new ArgumentException("SlaveID must be even");
             lock (this)
             {
                 SendCommand(new byte[] { (byte)RNCommands.SetIC2SlaveID, id });
@@ -280,18 +318,14 @@ namespace RNStepMotor
                 return Utils.ByteArrayToString(SendCommand(new byte[] { (byte)RNCommands.GetFirmwareVersionAndState }));
             }
         }
-
-
-
         #endregion
 
         #region IDisposable Member
-
         public void Dispose()
         {
             Disconnect();
+            _conn.Dispose();
         }
-
         #endregion
     }
 }

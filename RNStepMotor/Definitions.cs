@@ -104,4 +104,12 @@ namespace RNStepMotor
         GetEepromContent = 254,
         GetFirmwareVersionAndState = 255
     }
+
+    public enum RNReturnValues : byte
+    {
+        OK = 42,
+        UnknownCommand = 43,
+        WrongCRC = 44,
+        WrongSlaveID = 45
+    }
 }
