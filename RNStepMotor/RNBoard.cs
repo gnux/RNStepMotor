@@ -1,88 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.IO.Ports;
 using System.Threading;
 
 namespace RNStepMotor
 {
-    #region DEFINITIONS
-    /// <summary>
-    /// Choose motors assigned for command.
-    /// Up to eight motors are selectable.
-    /// </summary>
-    public enum MotorSelection : byte
-    {
-        Motor1 = 1,
-        Motor2 = 2,
-        Motor3 = 4,
-        Motor4 = 8,
-        Motor5 = 16,
-        Motor6 = 32,
-        Motor7 = 64,
-        Motor8 = 128
-    }
-
-    /// <summary>
-    /// Choose rotation direction.
-    /// </summary>
-    public enum RotatingDirection : byte
-    {
-        Left = 0,
-        Right = 1
-    }
-
-    /// <summary>
-    /// Choose how long a setting should least.
-    /// </summary>
-    public enum SettingsDuration : byte
-    {
-        UntilReset = 0,
-        StoreInEeprom = 1
-    }
-
-
-    #endregion
-
     public class RNCommandLibrary : IDisposable
     {
-        /// <summary>
-        /// Definition of command sets
-        /// </summary>
-        private enum RNCommands : byte
-        {
-            SetMotorCurrent = 10,
-            SetStartCurrent = 11,
-            SetHoldCurrent = 12,
-            SetStepWidth = 13,
-            ResetStepCounter = 14,
-            ActivateOrHoldMotor = 50,
-            TurnOffMotor = 51,
-            SetRotationDirection = 52,
-            SetSpeedAndAcceleration = 53,
-            StartContinuousRotation = 54,
-            RotateNumberOfSteps = 55,
-            Reserved = 100,
-            GetMotorStatus = 101,
-            GetStepCounter = 102,
-            GetLastIC2Confirmation = 103,
-            GetEndSwitchStatus = 104,
-            SetConnectionMode = 200,
-            SetCRCMode = 201,
-            SetIC2SlaveID = 202,
-            ResetBoard = 203,
-            GetEepromContent = 254,
-            GetFirmwareVersionAndState = 255
-        }
-
         byte[] _answer = null;
         AutoResetEvent _dataAvailable = new AutoResetEvent(false);
-        bool _crc = false;
-
-
         public RNCommandLibrary() { }
-        public void SetCurrent() { }
 
         #region CONNECTION
         SerialPort _conn = null;
@@ -139,15 +67,12 @@ namespace RNStepMotor
             command[1] = (byte)'#';
             for (int i = 0; i < 6; i++)
                 command[i + 2] = data[i];
-            if (_crc == true)
-                command[8] = Utils.CalculateCRC8(data);
-            else
-                command[8] = 0;
-
+            command[8] = Utils.CalculateCRC8(data);
             lock (_conn)
             {
                 _conn.Write(command, 0, 9);
             }
+            //TODO: Replace with chooseable timeout!
             if (!(_dataAvailable.WaitOne(1000) && _answer != null))
                 throw new TimeoutException("Timeout occured while waiting for response\n" + "Message was: " + Utils.ByteArrayToHexString(command));
 
@@ -164,6 +89,7 @@ namespace RNStepMotor
         {
             switch (_answer[_answer.Length - 1])
             {
+                    //TODO: introduce exceptions!
                 case 42: return;
                 case 45: throw new NotImplementedException();
                 case 44: throw new NotImplementedException();
@@ -174,47 +100,41 @@ namespace RNStepMotor
 
         private void ReceiveHandler(object sender, SerialDataReceivedEventArgs args)
         {
-            //wait 20ms
-            Thread.Sleep(20);
-            lock (_conn)
+            SerialPort conn = (SerialPort)sender;
+            lock (conn)
             {
-                _answer = Utils.StringToByteArray(_conn.ReadExisting());
+                int size = 0;
+                byte[] answer = new byte[size];
+                while (conn.BytesToRead != 0)
+                {
+                    size += conn.BytesToRead;
+                    int index = answer.Length;
+                    Array.Resize(ref answer, size);
+                    conn.Read(answer, index, size - index);
+                    // Give some Time, because the board is slow! Maybe a hack!
+                    Thread.Sleep(20);
+                }
+                _answer = answer;
             }
             _dataAvailable.Set();
             return;
         }
         #endregion
 
-        #region CommandsSetup
-        public void SetMotorCurrent(MotorSelection motors, uint cur, SettingsDuration duration)
+        #region Commands
+        public void SetCurrent(CurrentSelection current, MotorSelection motors, uint mA, SettingsDuration duration = SettingsDuration.UntilReset)
         {
             lock (this)
             {
-                SendCommand(new byte[] { (byte)RNCommands.SetMotorCurrent, (byte)motors, (byte)(cur & 0x00FF), (byte)((cur & 0xFF00) >> 8), (byte)duration });
+                SendCommand(new byte[] { (byte)current, (byte)motors, (byte)(mA & 0x00FF), (byte)((mA & 0xFF00) >> 8), (byte)duration });
             }
         }
 
-        public void SetStartCurrent(MotorSelection motors, uint cur, SettingsDuration duration)
+        public void SetStepWidth(StepWidth width, SettingsDuration duration = SettingsDuration.UntilReset)
         {
             lock (this)
             {
-                SendCommand(new byte[] { (byte)RNCommands.SetStartCurrent, (byte)motors, (byte)(cur & 0x00FF), (byte)((cur & 0xFF00) >> 8), (byte)duration });
-            }
-        }
-
-        public void SetHoldingCurrent(MotorSelection motors, uint cur, SettingsDuration duration)
-        {
-            lock (this)
-            {
-                SendCommand(new byte[] { (byte)RNCommands.SetHoldCurrent, (byte)motors, (byte)(cur & 0x00FF), (byte)((cur & 0xFF00) >> 8), (byte)duration });
-            }
-        }
-
-        public void RotateSteps(MotorSelection motors, uint steps)
-        {
-            lock (this)
-            {
-                SendCommand(new byte[] { (byte)RNCommands.RotateNumberOfSteps, (byte)motors, (byte)(steps & 0x00FF), (byte)((steps & 0xFF00) >> 8) });
+                SendCommand(new byte[] { (byte)RNCommands.SetStepWidth, (byte)MotorSelection.All, (byte)width, (byte)duration });
             }
         }
 
@@ -226,42 +146,144 @@ namespace RNStepMotor
             }
         }
 
-
-        #endregion
-
-
-        
-
-        public void SetFullStep(MotorSelection motors)
+        public void ActivateOrHold(MotorSelection motors)
         {
             lock (this)
             {
-                SendCommand(new byte[] { 13, (byte)motors, 0 });
+                SendCommand(new byte[] { (byte)RNCommands.ActivateOrHoldMotor, (byte)motors });
             }
-        }
-
-        public void SetHalfStep(MotorSelection motors)
-        {
-            SendCommand(new byte[] { 13, (byte)motors, 1 });
-        }
-
-        public void ActivateOrHold(MotorSelection motors)
-        {
-            SendCommand(new byte[] { 50, (byte)motors });
         }
 
         public void TurnOff(MotorSelection motors)
         {
-            SendCommand(new byte[] { 51, (byte)motors });
+            lock (this)
+            {
+                SendCommand(new byte[] { (byte)RNCommands.TurnOffMotor, (byte)motors });
+            }
         }
 
         public void SetRotatingDirection(MotorSelection motors, RotatingDirection direction)
         {
-            SendCommand(new byte[] { 52, (byte)motors, (byte)direction });
+            lock (this)
+            {
+                SendCommand(new byte[] { (byte)RNCommands.SetRotationDirection, (byte)motors, (byte)direction });
+            }
         }
 
-        public void EnableCRC() { _crc = true; }
-        public void DisableCRC() { _crc = false; }
+        public void SetSpeedAndAcceleration(MotorSelection motors, byte speed, byte acceleration)
+        {
+            lock (this)
+            {
+                SendCommand(new byte[] { (byte)RNCommands.SetSpeedAndAcceleration, speed, acceleration });
+            }
+        }
+
+        public void StartContinuousRotation(MotorSelection motors)
+        {
+            lock (this)
+            {
+                SendCommand(new byte[] { (byte)RNCommands.StartContinuousRotation, (byte)motors });
+            }
+        }
+
+        public void RotateSteps(MotorSelection motors, uint steps)
+        {
+            lock (this)
+            {
+                SendCommand(new byte[] { (byte)RNCommands.RotateNumberOfSteps, (byte)motors, (byte)(steps & 0x00FF), (byte)((steps & 0xFF00) >> 8) });
+            }
+        }
+
+        public MotorState[] GetMotorState(MotorSelection motors)
+        {
+            lock (this)
+            {
+                byte[] answer = SendCommand(new byte[] { (byte)RNCommands.GetMotorState });
+                MotorState[] states = new MotorState[answer.Length];
+                for (int i = 0; i < answer.Length; ++i)
+                    states[i] = (MotorState)answer[i];
+                return states;
+            }
+        }
+
+        public short GetStepCounter(MotorSelection motors)
+        {
+            lock (this)
+            {
+                byte[] answer = SendCommand(new byte[] { (byte)RNCommands.GetStepCounter });
+                //TODO!!!
+
+                // MotorState[] states = new MotorState[answer.Length];
+                // for (int i = 0; i < answer.Length; ++i)
+                //     states[i] = (MotorState)answer[i];
+                return 0;
+            }
+        }
+
+        public byte GetLastIC2Confirmation()
+        {
+            lock (this)
+            {
+                byte[] answer = SendCommand(new byte[] { (byte)RNCommands.GetLastIC2Confirmation });
+                //TODO!!!
+
+                // MotorState[] states = new MotorState[answer.Length];
+                // for (int i = 0; i < answer.Length; ++i)
+                //     states[i] = (MotorState)answer[i];
+                return 0;
+            }
+        }
+
+        public EndSwitchState[] GetEndSwitchStates()
+        {
+            throw new NotImplementedException();
+            //return null;
+        }
+
+        public void SetInterfaceMode(InterfaceMode mode) { throw new NotImplementedException(); }
+
+        public void SetCRCMode(CRCMode mode)
+        {
+            lock (this)
+            {
+                SendCommand(new byte[] { (byte)RNCommands.SetCRCMode, (byte)mode });
+            }
+        }
+
+        public void SetIC2SlaveID(byte id)
+        {
+            if (id % 2 != 0)
+                throw new ArgumentException("SlaveID must be even");
+            lock (this)
+            {
+                SendCommand(new byte[] { (byte)RNCommands.SetIC2SlaveID, id });
+            }
+        }
+
+        public void ResetBoard()
+        {
+            lock (this)
+            {
+                SendCommand(new byte[] { (byte)RNCommands.ResetBoard });
+            }
+        }
+
+        public byte[] GetEEPromValues(byte num)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetVersionAndStateInformation()
+        {
+            lock (this)
+            {
+                return Utils.ByteArrayToString(SendCommand(new byte[] { (byte)RNCommands.GetFirmwareVersionAndState }));
+            }
+        }
+
+
+
+        #endregion
 
         #region IDisposable Member
 

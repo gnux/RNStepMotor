@@ -15,16 +15,21 @@ namespace Test
             RNCommandLibrary rn = new RNCommandLibrary();
             try
             {
-                rn.Connect("COM3");
+              //  rn.ResetStepCounter(MotorSelection.Motor1 | MotorSelection.Motor2);
+                rn.Connect("COM2");
             }
             catch (Exception e)
             {
             
             }
-            rn.EnableCRC();
-            rn.ResetStepCounter(MotorSelection.Motor1 | MotorSelection.Motor2);
-            rn.RotateSteps(MotorSelection.Motor1, 300);
-            rn.RotateSteps(MotorSelection.Motor2, 300);
+            //rn.EnableCRC();
+            Console.WriteLine(DateTime.Now.Second +" "+ DateTime.Now.Millisecond);
+            string str = rn.GetVersionAndStateInformation();
+            Console.WriteLine(str);
+            Console.WriteLine(DateTime.Now.Second +" "+ DateTime.Now.Millisecond);
+            //rn.ResetStepCounter(MotorSelection.Motor1 | MotorSelection.Motor2);
+           // rn.RotateSteps(MotorSelection.Motor1, 300);
+           // rn.RotateSteps(MotorSelection.Motor2, 300);
             rn.Disconnect();
             //byte crc = rn.TestCrc(val);
             //Console.WriteLine(crc + " 0x" + Convert.ToString(crc, 16));
