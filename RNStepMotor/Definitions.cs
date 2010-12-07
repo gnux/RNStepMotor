@@ -24,6 +24,7 @@ namespace RNStepMotor
     /// </summary>
     public enum MotorSelection : byte
     {
+        None = 0,
         Motor1 = 1,
         Motor2 = 2,
         Motor3 = 4,
