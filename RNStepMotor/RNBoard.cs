@@ -94,7 +94,7 @@ namespace RNStepMotor
             get { return _conn.PortName; }
         }
 
-        private byte[] SendCommand(byte[] data)
+        private byte[] SendCommand(byte[] data, bool waitResponse = true)
         {
             if (data.Length > 6)
                 throw new ArgumentException("Commandpart max. lenght is 6!");
@@ -110,6 +110,11 @@ namespace RNStepMotor
             {
                 _conn.Write(command, 0, 9);
             }
+
+            if (!waitResponse)
+                return null;
+            
+            _dataAvailable.Reset();
 
             if (!(_dataAvailable.WaitOne(_timeoutAnswer) && _answer != null))
                 throw new RNConnectionTimeOutException("Timeout occured while waiting for response\n" + "Message was: " + Utils.ByteArrayToHexString(command));
@@ -317,7 +322,7 @@ namespace RNStepMotor
         {
             lock (this)
             {
-                SendCommand(new byte[] { (byte)RNCommands.ResetBoard });
+                SendCommand(new byte[] { (byte)RNCommands.ResetBoard }, false);
             }
         }
 
