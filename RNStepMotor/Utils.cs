@@ -54,7 +54,7 @@ namespace RNStepMotor
             StringBuilder str = new StringBuilder("0x");
             foreach (byte b in array)
             {
-                str.Append(Convert.ToString(b, 16));
+                str.AppendFormat("{0:X2}", b);
             }
             return str.ToString();
         }

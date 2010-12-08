@@ -323,7 +323,11 @@ namespace RNStepMotor
 
         public byte[] GetEEPromValues(byte num)
         {
-            throw new NotImplementedException();
+            lock (this)
+            {
+                byte[] answer = SendCommand(new byte[] { (byte)RNCommands.GetEepromContent, num });
+                return answer;
+            }
         }
 
         public string GetVersionAndStateInformation()
