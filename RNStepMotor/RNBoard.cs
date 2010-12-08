@@ -113,7 +113,7 @@ namespace RNStepMotor
 
             if (!waitResponse)
                 return null;
-            
+
             _dataAvailable.Reset();
 
             if (!(_dataAvailable.WaitOne(_timeoutAnswer) && _answer != null))
@@ -224,7 +224,7 @@ namespace RNStepMotor
         {
             lock (this)
             {
-                SendCommand(new byte[] { (byte)RNCommands.SetSpeedAndAcceleration, speed, acceleration });
+                SendCommand(new byte[] { (byte)RNCommands.SetSpeedAndAcceleration, (byte) motors, speed, acceleration });
             }
         }
 
@@ -260,7 +260,7 @@ namespace RNStepMotor
         {
             lock (this)
             {
-                byte[] answer = SendCommand(new byte[] { (byte)RNCommands.GetStepCounter });
+                byte[] answer = SendCommand(new byte[] { (byte)RNCommands.GetStepCounter, (byte)motors });
                 uint[] steps = new uint[answer.Length / 4];
                 for (int i = 0; i < answer.Length / 4; ++i)
                 {
