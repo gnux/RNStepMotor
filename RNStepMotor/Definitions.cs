@@ -15,6 +15,7 @@
  * (c) 2010, gnux
  */
 
+using EnumString;
 
 namespace RNStepMotor
 {
@@ -42,6 +43,55 @@ namespace RNStepMotor
         Stopped = 1,
         Turning = 2,
         ContinousRotation = 3
+    }
+
+    public enum SpeedSetting : byte
+    {
+        [StringValue("1000")]
+        s1000 = 0,
+        [StringValue("500")]
+        s500 = 1,
+        [StringValue("333")]
+        s333 = 2,
+        [StringValue("250")]
+        s250 = 3,
+        [StringValue("200")]
+        s200 = 4,
+        [StringValue("166")]
+        s166 = 5,
+        [StringValue("143")]
+        s143 = 6,
+        [StringValue("125")]
+        s125 = 7,
+        [StringValue("111")]
+        s111 = 8,
+        [StringValue("100")]
+        s100 = 9,
+        [StringValue("90")]
+        s90 = 10,
+        [StringValue("83")]
+        s83 = 11,
+        [StringValue("77")]
+        s77 = 12,
+        [StringValue("71")]
+        s71 = 13,
+        [StringValue("67")]
+        s67 = 14,
+        [StringValue("63")]
+        s63 = 15,
+        [StringValue("59")]
+        s59 = 16,
+        [StringValue("56")]
+        s56 = 17,
+        [StringValue("53")]
+        s53 = 18,
+        [StringValue("50")]
+        s50 = 19,
+        [StringValue("48")]
+        s48 = 20,
+        [StringValue("45")]
+        s45 = 21
+
     }
 
     public enum EndSwitchState : byte

@@ -18,6 +18,7 @@
 using System;
 using System.IO.Ports;
 using System.Threading;
+using RNStepMotor.Utils;
 
 namespace RNStepMotor
 {
@@ -99,13 +100,13 @@ namespace RNStepMotor
             if (data.Length > 6)
                 throw new ArgumentException("Commandpart max. lenght is 6!");
             if (data.Length < 6)
-                data = Utils.Pad(data);
+                data = RNStepBoard.PadCommand(data);
             byte[] command = new byte[9];
             command[0] = (byte)'!';
             command[1] = (byte)'#';
             for (int i = 0; i < 6; i++)
                 command[i + 2] = data[i];
-            command[8] = Utils.CalculateCRC8(data);
+            command[8] = RNStepBoard.CalculateCRC8(data);
             lock (_conn)
             {
                 _conn.Write(command, 0, 9);
@@ -117,7 +118,7 @@ namespace RNStepMotor
             _dataAvailable.Reset();
 
             if (!(_dataAvailable.WaitOne(_timeoutAnswer) && _answer != null))
-                throw new RNConnectionTimeOutException("Timeout occured while waiting for response\n" + "Message was: " + Utils.ByteArrayToHexString(command));
+                throw new RNConnectionTimeOutException("Timeout occured while waiting for response\n" + "Message was: " + RNStepBoard.ByteArrayToHexString(command));
 
             _dataAvailable.Reset();
 
@@ -339,7 +340,7 @@ namespace RNStepMotor
         {
             lock (this)
             {
-                return Utils.ByteArrayToString(SendCommand(new byte[] { (byte)RNCommands.GetFirmwareVersionAndState }));
+                return RNStepBoard.ByteArrayToString(SendCommand(new byte[] { (byte)RNCommands.GetFirmwareVersionAndState }));
             }
         }
         #endregion
