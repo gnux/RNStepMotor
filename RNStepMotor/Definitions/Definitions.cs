@@ -15,9 +15,9 @@
  * (c) 2010, gnux
  */
 
-using EnumString;
+using System.ComponentModel;
 
-namespace RNStepMotor
+namespace gnux.RNStepMotor.Definitions
 {
     /// <summary>
     /// Choose motors assigned for command.
@@ -25,78 +25,115 @@ namespace RNStepMotor
     /// </summary>
     public enum MotorSelection : byte
     {
+        [Description("None")]
         None = 0,
+        [Description("Motor 1")]
         Motor1 = 1,
+        [Description("Motor 2")]
         Motor2 = 2,
+        [Description("Motor 3")]
         Motor3 = 4,
+        [Description("Motor 4")]
         Motor4 = 8,
+        [Description("Motor 5")]
         Motor5 = 16,
+        [Description("Motor 6")]
         Motor6 = 32,
+        [Description("Motor 7")]
         Motor7 = 64,
+        [Description("Motor 8")]
         Motor8 = 128,
+        [Description("All")]
         All = 255
     }
 
     public enum MotorState : byte
     {
+        [Description("OFF")]
         Off = 0,
+        [Description("Stopped")]
         Stopped = 1,
+        [Description("Turning")]
         Turning = 2,
+        [Description("Continous rotation")]
         ContinousRotation = 3
     }
 
     public enum SpeedSetting : byte
     {
-        [StringValue("1000")]
-        s1000 = 0,
-        [StringValue("500")]
-        s500 = 1,
-        [StringValue("333")]
-        s333 = 2,
-        [StringValue("250")]
-        s250 = 3,
-        [StringValue("200")]
-        s200 = 4,
-        [StringValue("166")]
-        s166 = 5,
-        [StringValue("143")]
-        s143 = 6,
-        [StringValue("125")]
-        s125 = 7,
-        [StringValue("111")]
-        s111 = 8,
-        [StringValue("100")]
-        s100 = 9,
-        [StringValue("90")]
-        s90 = 10,
-        [StringValue("83")]
-        s83 = 11,
-        [StringValue("77")]
-        s77 = 12,
-        [StringValue("71")]
-        s71 = 13,
-        [StringValue("67")]
-        s67 = 14,
-        [StringValue("63")]
-        s63 = 15,
-        [StringValue("59")]
-        s59 = 16,
-        [StringValue("56")]
-        s56 = 17,
-        [StringValue("53")]
-        s53 = 18,
-        [StringValue("50")]
-        s50 = 19,
-        [StringValue("48")]
-        s48 = 20,
-        [StringValue("45")]
-        s45 = 21
+        [Description("1000")]
+        _1000 = 0,
+        [Description("500")]
+        _500 = 1,
+        [Description("333")]
+        _333 = 2,
+        [Description("250")]
+        _250 = 3,
+        [Description("200")]
+        _200 = 4,
+        [Description("150")]
+        _150 = 6,
+        [Description("125")]
+        _125 = 7,
+        [Description("100")]
+        _100 = 9,
+        [Description("90")]
+        _90 = 10,
+        [Description("80")]
+        _80 = 12,
+        [Description("70")]
+        _70 = 13,
+        [Description("60")]
+        _59 = 16,
+        [Description("50")]
+        _50 = 19,
+        [Description("45")]
+        _45 = 21,
+        [Description("40")]
+        _40 = 24,
+        [Description("35")]
+        _35 = 28,
+        [Description("30")]
+        _30 = 32,
+        [Description("25")]
+        _25 = 39,
+        [Description("20")]
+        _20 = 49,
+        [Description("15")]
+        _15 = 66,
+        [Description("10")]
+        _10 = 99,
+        [Description("8")]
+        _8 = 124,
+        [Description("6")]
+        _6 = 166,
+        [Description("5")]
+        _5 = 199,
+        [Description("4")]
+        _4 = 249
+    }
 
+    public enum Acceleration : byte
+    {
+        [Description("Immediate")]
+        immediate = 0,
+        [Description("Very Fast")]
+        vfast = 5,
+        [Description("Fast")]
+        fast = 15,
+        [Description("Normal")]
+        normal = 25,
+        [Description("Slow")]
+        slow = 35,
+        [Description("Very Slow")]
+        vslow = 50
     }
 
     public enum EndSwitchState : byte
     {
+        [Description("OFF")]
         Off = 0,
+        [Description("ON")]
         On = 1
     }
 
@@ -105,7 +142,9 @@ namespace RNStepMotor
     /// </summary>
     public enum RotatingDirection : byte
     {
+        [Description("Left")]
         Left = 0,
+        [Description("Right")]
         Right = 1
     }
 
@@ -114,32 +153,42 @@ namespace RNStepMotor
     /// </summary>
     public enum SettingsDuration : byte
     {
+        [Description("Until Reset")]
         UntilReset = 0,
+        [Description("Store in EEPRom")]
         StoreInEeprom = 1
     }
 
     public enum CurrentSelection : byte
     {
+        [Description("Motor Current")]
         MotorCurrent = 10,
+        [Description("Start Current")]
         StartCurrent = 11,
         HoldCurrent = 12
     }
 
     public enum StepWidth : byte
     {
+        [Description("Full Step")]
         FullStep = 0,
+        [Description("Half Step")]
         HalfStep = 1
     }
 
     public enum CRCMode : byte
     {
+        [Description("Disabled")]
         Disabled = 0,
+        [Description("Enabled")]
         Enabled = 1
     }
 
     public enum InterfaceMode : byte
     {
+        [Description("RS232 or IC2")]
         RS232orIC2 = 0,
+        [Description("External")]
         External = 2
     }
 

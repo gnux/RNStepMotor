@@ -1,23 +1,52 @@
 ﻿using System;
 using RNStepMotor;
 //using RNStepMotor.Utils;
-using EnumString;
+//using EnumString;
+using System.ComponentModel;
+using System.Reflection;
+using gnux.Extensions.extEnums;
 
 namespace Test
 {
-    class testAttribute : Attribute{}
+    class testAttribute : Attribute { }
 
-    public enum lala : byte 
+    public enum LaLa : byte
     {
-        [StringValue("w")]
+        [DescriptionAttribute("Enum a")]
         [test]
-        a=45,
-        [StringValue("we")]
+        a = 45,
+        [DescriptionAttribute("Enum b")]
         b,
-        [StringValue("weR")]
+        [DescriptionAttribute("Enum c")]
         c
     }
 
+    //public class LaLaExtensions
+    //{
+    //    public static string ConvertToString(this LaLa value)
+    //    {
+    //        if (value == null)
+    //            throw new ArgumentNullException("value");
+    //        Type type = value.GetType();
+    //        FieldInfo fieldInfo = type.GetField(Enum.GetName(type, value));
+    //        var descriptionAttribute =
+    //            (DescriptionAttribute)Attribute.GetCustomAttribute(
+    //                                       fieldInfo, typeof(DescriptionAttribute));
+
+    //        if (descriptionAttribute != null)
+    //            return descriptionAttribute.Description;
+    //        return value.ToString();
+    //    }
+    //}
+
+    //public static class ExtensionMethods
+    //{
+
+    //    public static string ToDescriptionString(this byte val)
+    //    {
+    //        return null;
+    //    }
+    //}
 
     class Program
     {
@@ -25,13 +54,26 @@ namespace Test
         {
 
 
-            Console.WriteLine((double)EnumStringHelper.GetAssociatedValue<lala>("wE"));
+            // Console.WriteLine((double)EnumStringHelper.GetAssociatedValue<LaLa>("wE"));
             //foreach(string str in EnumStringHelper.GetAssociatedString(lala.a))
-                Console.WriteLine(EnumStringHelper.GetAssociatedString(lala.c));
-                foreach (string str in EnumStringHelper.GetEnumStrings(typeof(lala)))
+            // Console.WriteLine(EnumStringHelper.GetAssociatedString(LaLa.c));
+            // foreach (string str in EnumStringHelper.GetEnumStrings(typeof(LaLa)))
+            //     Console.WriteLine(str);
+            // foreach (string str in EnumStringHelper.GetEnumStringsArray(typeof(SpeedSetting)))
+
+
+            LaLa c;
+            c = LaLa.c;
+            byte x;
+            Console.WriteLine(c.ToDescriptionString());
+            Console.WriteLine();
+            Console.WriteLine(c.FromDescriptionString("enum a", true));
+            Console.WriteLine();
+            foreach (string str in c.GetDescriptionStrings())
                 Console.WriteLine(str);
-                foreach (string str in EnumStringHelper.GetEnumStringsArray(typeof(SpeedSetting)))
-                    Console.WriteLine(str);
+            Console.WriteLine();
+            foreach (string str in c.GetDescriptionStringsList())
+                Console.WriteLine(str);
             Console.ReadKey();
 
             //byte[] val = { 0x0e, 0x01, 0x00, 0x00, 0x00, 0x00};

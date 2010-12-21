@@ -17,7 +17,7 @@
 
 using System;
 
-namespace RNStepMotor
+namespace gnux.RNStepMotor.Exceptions
 {
     /// <summary>
     /// RNCrcException is mapped to return value 44

@@ -18,7 +18,7 @@
 using System;
 using System.Text;
 
-namespace RNStepMotor.Utils
+namespace gnux.RNStepMotor.Utils
 {
     static class RNStepBoard
     {

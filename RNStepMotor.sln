@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C# Express 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RNStepMotor", "RNStepMotor\RNStepMotor.csproj", "{799E59B2-9334-4CDF-9439-8DE2D2BEFCA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,16 +23,6 @@ Global
 		{799E59B2-9334-4CDF-9439-8DE2D2BEFCA0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{799E59B2-9334-4CDF-9439-8DE2D2BEFCA0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{799E59B2-9334-4CDF-9439-8DE2D2BEFCA0}.Release|x86.ActiveCfg = Release|Any CPU
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Debug|x86.ActiveCfg = Debug|x86
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Debug|x86.Build.0 = Debug|x86
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Release|Any CPU.ActiveCfg = Release|x86
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Release|Mixed Platforms.Build.0 = Release|x86
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Release|x86.ActiveCfg = Release|x86
-		{DCB3EF76-A9F4-4A7E-BA17-259AE4F69839}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

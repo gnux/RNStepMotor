@@ -18,14 +18,21 @@
 using System;
 using System.IO.Ports;
 using System.Threading;
-using RNStepMotor.Utils;
+using gnux.RNStepMotor.Utils;
+using gnux.RNStepMotor.Definitions;
+using gnux.RNStepMotor.Exceptions;
 
-namespace RNStepMotor
+namespace gnux.RNStepMotor
 {
     public class RNCommandLibrary : IDisposable
     {
+        #region members
         byte[] _answer = null;
         AutoResetEvent _dataAvailable = new AutoResetEvent(false);
+        int _timeoutAnswer = 1000;
+        #endregion
+
+        #region Constructors
         public RNCommandLibrary()
         {
             _conn.DataReceived += new SerialDataReceivedEventHandler(_conn_DataReceived);
@@ -37,8 +44,9 @@ namespace RNStepMotor
             _conn.DataBits = 8;
             _conn.BaudRate = 9600;
         }
-        int _timeoutAnswer = 1000;
+        #endregion
 
+        #region Get Set
         public int TimeoutAnswer
         {
             get { return _timeoutAnswer; }
@@ -61,8 +69,9 @@ namespace RNStepMotor
         {
             get { return SerialPort.GetPortNames(); }
         }
+        #endregion
 
-        #region CONNECTION
+        #region Connection
         private SerialPort _conn = new SerialPort();
 
         public void Connect(string serPort)
@@ -221,11 +230,11 @@ namespace RNStepMotor
             }
         }
 
-        public void SetSpeedAndAcceleration(MotorSelection motors, byte speed, byte acceleration)
+        public void SetSpeedAndAcceleration(MotorSelection motors, SpeedSetting speed, Acceleration acceleration)
         {
             lock (this)
             {
-                SendCommand(new byte[] { (byte)RNCommands.SetSpeedAndAcceleration, (byte) motors, speed, acceleration });
+                SendCommand(new byte[] { (byte)RNCommands.SetSpeedAndAcceleration, (byte)motors, (byte)speed, (byte)acceleration });
             }
         }
 
